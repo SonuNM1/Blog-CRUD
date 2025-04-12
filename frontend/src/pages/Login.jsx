@@ -86,6 +86,16 @@ const Login = () => {
 
         </form>
 
+        <p className="text-center mt-4 text-sm">
+          Not registered?{" "}
+          <span
+            onClick={() => navigate('/register')}
+            className="text-blue-600 hover:underline cursor-pointer"
+          >
+            Register here
+          </span>
+        </p>
+
       </div>
     </div>
   )

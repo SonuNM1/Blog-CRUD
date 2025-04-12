@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
-import axios from 'axios';
+import React, { useEffect, useState } from "react";
+import { Link, useParams } from "react-router-dom";
+import axios from "axios";
 
 const SingleBlog = () => {
-  const { id } = useParams(); // Extract the blog ID from the URL
+  const { id } = useParams();
   const [blog, setBlog] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -12,11 +12,13 @@ const SingleBlog = () => {
     const fetchBlog = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`http://localhost:8080/api/blog/blogs/${id}`);
+        const response = await axios.get(
+          `http://localhost:8080/api/blog/blogs/${id}`
+        );
         setBlog(response.data.blog);
       } catch (err) {
-        setError('Failed to fetch blog');
-        console.error('Error fetching blog:', err);
+        setError("Failed to fetch blog");
+        console.error("Error fetching blog:", err);
       } finally {
         setLoading(false);
       }
@@ -39,7 +41,16 @@ const SingleBlog = () => {
 
   return (
     <div className="max-w-3xl mx-auto mt-10 p-6 bg-white shadow rounded-lg">
-      <h1 className="text-3xl font-bold mb-4">{blog.title}</h1>
+      <div className="flex justify-between items-center gap-6 mb-6">
+        <h1 className="text-4xl font-semibold text-gray-800">{blog.title}</h1>
+        <Link
+          to="/"
+          className="inline-block bg-blue-400 hover:bg-blue-500 text-white font-semibold py-3 px-6 rounded-md"
+        >
+          View All Blogs
+        </Link>
+      </div>
+
       {blog.image && (
         <img
           src={`http://localhost:8080/uploads/${blog.image}`}

@@ -64,6 +64,11 @@ const SignUp = () => {
     }
   };
 
+  const removeImage = () => {
+    setValue("profileImage", null);
+    setImagePreview(null);
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
       <div className="bg-white p-8 rounded-xl shadow-lg w-full max-w-3xl">
@@ -77,14 +82,25 @@ const SignUp = () => {
           className="grid grid-cols-1 md:grid-cols-2 gap-6"
           encType="multipart/form-data"
         >
-          {/* Left: Image Upload + Preview */}
-          <div className="flex flex-col items-center gap-4">
+
+
+          <div className="flex flex-col items-center gap-4 relative">
             {imagePreview ? (
-              <img
-                src={imagePreview}
-                alt="Preview"
-                className="w-32 h-32 object-cover rounded-full"
-              />
+              <div className="relative">
+                <img
+                  src={imagePreview}
+                  alt="Preview"
+                  className="w-32 h-32 object-cover rounded-full"
+                />
+                <button
+                  type="button"
+                  onClick={removeImage}
+                  className="absolute -top-2 -right-2 bg-red-500 text-white w-6 h-6 rounded-full text-xs flex items-center justify-center hover:bg-red-600"
+                  title="Remove Image"
+                >
+                  ×
+                </button>
+              </div>
             ) : (
               <div className="w-32 h-32 rounded-full bg-gray-200 flex items-center justify-center text-gray-500">
                 No Image
@@ -112,7 +128,6 @@ const SignUp = () => {
             )}
           </div>
 
-          {/* Right: Email + Password + Button */}
           <div className="flex flex-col gap-4">
             <div>
               <input
@@ -144,6 +159,17 @@ const SignUp = () => {
             >
               Sign Up
             </button>
+
+         
+            <p className="text-center text-sm mt-2">
+              Already registered?{" "}
+              <span
+                onClick={() => navigate("/login")}
+                className="text-blue-600 hover:underline cursor-pointer"
+              >
+                Login here
+              </span>
+            </p>
           </div>
         </form>
       </div>

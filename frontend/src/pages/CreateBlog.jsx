@@ -1,8 +1,9 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import axios from 'axios'
 import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
+import { useNavigate, useParams } from 'react-router-dom'
 
 const schema = yup.object().shape({
   title: yup.string().required('Title is required'),
@@ -13,6 +14,10 @@ const schema = yup.object().shape({
 const CreateBlog = () => {
   const [imagePreview, setImagePreview] = useState(null)
   const [message, setMessage] = useState("")
+  const navigate = useNavigate()
+
+  const [isEditing, setIsEditing] = useState(false)
+  const {id} = useParams()
 
   const {
     register,
@@ -21,30 +26,73 @@ const CreateBlog = () => {
     formState: { errors },
     reset
   } = useForm({
-    resolver: yupResolver(schema)
+    resolver: yupResolver(schema),
+    context: {isEditing}
   })
+
+  useEffect(() => {
+    if(id){
+      setIsEditing(true)
+
+      // fetching blog data from id for updating the blog fields
+
+      axios.get(`http://localhost:8080/api/blog/blogs/${id}`)
+      .then((res) => {
+        const {title, description, image} = res.data.blog 
+
+        setValue('title', title)
+        setValue('description', description)
+        setImagePreview(`http://localhost:8080/uploads/${image}`)
+      })
+      .catch((error) => {
+        console.log('Error fetching blog data: ', error)
+      })
+
+    }
+  }, [id, setValue])
 
   const onSubmit = async (data) => {
     const formData = new FormData()
     formData.append('title', data.title)
     formData.append('description', data.description)
-    formData.append('image', data.image[0])
+    
+    if(data.image && data.image[0]){
+      formData.append('image', data.image[0])
+    }
 
     try {
       const token = localStorage.getItem('token')
-      const response = await axios.post('http://localhost:8080/api/blog/create', formData, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      })
 
-      setMessage(response.data.message)
+      if(isEditing){
+        await axios.put(`http://localhost:8080/api/blog/blogs/${id}`, formData, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data'
+          }
+        })
+        setMessage('Blog updated successfully')
+      }
+      else{
+        const response = await axios.post('http://localhost:8080/api/blog/create', formData, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        })
+
+        setMessage(response.data.message) 
+
+        const blogId = response.data.blog._id 
+
+        navigate(`/blogs/${blogId}`)
+      }
+
       reset()
       setImagePreview(null)
 
     } catch (error) {
-      console.log('Error creating blog:', error)
-      setMessage(error.response?.data?.message || 'Blog creation failed')
+      console.log('Error creating/updating blog:', error)
+
+      setMessage(error.response?.data?.message || 'Operation failed')
     }
   }
 
@@ -59,7 +107,11 @@ const CreateBlog = () => {
   return (
     <div className='min-h-screen bg-gray-100 flex items-center justify-center px-4'>
       <div className='w-full max-w-5xl bg-white shadow-lg rounded-lg p-10'>
-        <h2 className='text-3xl font-bold text-center mb-8'>Create New Blog</h2>
+        <h2 className='text-3xl font-bold text-center mb-8'>
+          {
+            isEditing ? 'Edit Blog' : 'Create New Blog'
+          }
+        </h2>
 
         {message && (
           <p className='text-center mb-6 text-green-600 font-medium'>{message}</p>
@@ -67,7 +119,6 @@ const CreateBlog = () => {
 
         <form onSubmit={handleSubmit(onSubmit)} className='grid grid-cols-1 lg:grid-cols-2 gap-10'>
 
-          {/* Left - Image Upload */}
           <div className='flex flex-col items-center gap-4'>
             {imagePreview ? (
               <img
@@ -127,7 +178,9 @@ const CreateBlog = () => {
               type='submit'
               className='bg-green-600 text-white py-3 rounded-md hover:bg-green-700 transition duration-200 cursor-pointer'
             >
-              Create Blog
+              {
+                isEditing ? 'Update Blog' : 'Create Blog'
+              }
             </button>
           </div>
         </form>
