@@ -36,4 +36,31 @@ const createBlog = async (req, res) => {
     }
 }
 
-module.exports = { createBlog }
+const getAllBlogs = async (req, res) => {
+    try {
+        const blogs = await Blog.find().sort({ createdAt: -1 }).populate('author', 'name');
+        res.status(200).json({ blogs });
+    } catch (error) {
+        console.error("Fetch blogs error:", error);
+        res.status(500).json({
+            message: 'Server Error', 
+            error: true , 
+            success: false 
+        });
+    }
+};
+
+const getBlogById = async (req, res) => {
+    try {
+      const blog = await Blog.findById(req.params.id); 
+      if (!blog) {
+        return res.status(404).json({ message: 'Blog not found' });
+      }
+      res.json({ blog });
+    } catch (error) {
+      console.error('Error fetching blog:', error);
+      res.status(500).json({ message: 'Server Error', error });
+    }
+  };
+
+module.exports = { createBlog, getAllBlogs, getBlogById }

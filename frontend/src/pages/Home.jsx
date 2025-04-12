@@ -1,24 +1,37 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
+import axios from 'axios'; 
 
 const Home = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
+  const [blogs, setBlogs] = useState([]);
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
-
     if (storedUser) {
       setUser(JSON.parse(storedUser));
     } else {
-      navigate('/login'); // redirect if not logged in
+      navigate('/login');
     }
   }, [navigate]);
+
+  useEffect(() => {
+    const fetchBlogs = async () => {
+      try {
+        const response = await axios.get('http://localhost:8080/api/blog/blogs');
+        setBlogs(response.data.blogs);
+      } catch (error) {
+        console.error('Error fetching blogs:', error);
+      }
+    };
+
+    fetchBlogs();
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
-
     navigate('/login');
   };
 
@@ -58,7 +71,41 @@ const Home = () => {
             + Write New Blog
           </button>
         </div>
-        {/* More content can go here */}
+
+        <section className='mt-6'>
+          <h3 className='text-xl font-semibold mb-4'>Latest Blogs</h3>
+          <div className='overflow-x-auto'>
+            <table className='min-w-full bg-white rounded-lg shadow-md'>
+              <thead>
+                <tr className='bg-gray-100 text-left'>
+                </tr>
+              </thead>
+              <tbody>
+                {blogs.map((blog) => (
+                  <Link
+                    to={`/blogs/${blog._id}`}
+                    key={blog._id}
+                    className='table-row hover:bg-gray-50 cursor-pointer'
+                  >
+                    <tr>
+                      <td className='py-2 px-4'>
+                        <img
+                          src={`http://localhost:8080/uploads/${blog.image}`}
+                          alt='blog'
+                          className='w-16 h-16 object-cover rounded'
+                        />
+                      </td>
+                      <td className='py-2 px-4 font-medium'>{blog.title}</td>
+                      <td className='py-2 px-4 text-gray-600'>
+                        {blog.description.slice(0, 100)}...
+                      </td>
+                    </tr>
+                  </Link>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
       </main>
     </div>
   );
